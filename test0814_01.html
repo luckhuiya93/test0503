@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>MBTI 진단 · 파스텔</title>
+  <meta name="description" content="파스텔 톤으로 예쁜 MBTI 자가 진단 테스트" />
+  <style>
+    :root{
+      /* 파스텔 팔레트 */
+      --bg: #f8fbff;
+      --bg-grad-1: #f8fbff;
+      --bg-grad-2: #fff8fb;
+      --text: #374151;
+      --muted: #6b7280;
+      --card: #ffffffcc; /* 유리모피 느낌 */
+      --glass: rgba(255,255,255,0.65);
+      --shadow: 0 10px 30px rgba(31, 41, 55, 0.08);
+      --primary: #a78bfa;  /* pastel purple */
+      --primary-2: #93c5fd; /* sky */
+      --accent-1: #f9a8d4;  /* pink */
+      --accent-2: #86efac;  /* mint */
+      --accent-3: #fcd34d;  /* soft yellow */
+      --danger: #fda4af;    /* soft red */
+      --ok: #86efac;
+      --radius: 18px;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body{
+      margin: 0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Noto Sans KR, Helvetica, Apple SD Gothic Neo, "Apple Color Emoji", "Segoe UI Emoji";
+      color: var(--text);
+      background:
+        radial-gradient(1200px 800px at 10% 10%, var(--bg-grad-1), transparent 60%),
+        radial-gradient(1200px 800px at 90% 20%, var(--bg-grad-2), transparent 60%),
+        linear-gradient(180deg, #ffffff, #f5f3ff);
+      background-attachment: fixed;
+    }
+
+    .wrap{ max-width: 980px; margin: 0 auto; padding: 40px 20px 80px; }
+
+    header{
+      display: grid; grid-template-columns: 1fr auto; gap: 16px; align-items: center;
+      margin-bottom: 22px;
+    }
+    .brand{ display:flex; align-items:center; gap:12px; }
+    .logo{
+      width: 44px; height: 44px; border-radius: 12px;
+      background: linear-gradient(135deg, var(--primary), var(--primary-2));
+      box-shadow: 0 8px 20px rgba(99,102,241,.25);
+    }
+    h1{ font-size: clamp(22px, 2.6vw, 34px); margin: 0; font-weight: 800; letter-spacing: -0.4px; }
+    header p{ margin: 0; color: var(--muted); font-size: 14px; }
+
+    .card{
+      background: var(--glass);
+      backdrop-filter: saturate(140%) blur(8px);
+      -webkit-backdrop-filter: saturate(140%) blur(8px);
+      border: 1px solid rgba(148,163,184,.2);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .hero{ padding: 28px; display:grid; grid-template-columns: 1.2fr .8fr; gap: 28px; align-items:center; }
+    .hero .lede{ font-size: 16px; line-height: 1.7; color: var(--muted); }
+    .hero .cta{ display:flex; gap: 12px; flex-wrap: wrap; margin-top: 14px; }
+    .btn{
+      appearance: none; border: none; cursor: pointer; user-select: none;
+      padding: 12px 18px; border-radius: 14px; font-weight: 700; font-size: 15px;
+      background: linear-gradient(135deg, var(--primary), var(--primary-2)); color: #fff;
+      box-shadow: 0 8px 24px rgba(99,102,241,.25);
+      transition: transform .05s ease, filter .2s ease, box-shadow .25s ease;
+    }
+    .btn:hover{ filter: brightness(1.03); box-shadow: 0 10px 28px rgba(99,102,241,.28); }
+    .btn:active{ transform: translateY(1px); }
+    .btn.secondary{ color:#334155; background: linear-gradient(135deg, #e9d5ff, #bae6fd); box-shadow: 0 8px 20px rgba(148,163,184,.2); }
+    .btn.ghost{ background: #fff; color:#334155; border:1px solid rgba(148,163,184,.4); box-shadow:none; }
+
+    .illus{
+      height: 220px; border-radius: 16px;
+      background:
+        radial-gradient(60px 60px at 10% 70%, #fef6f6, transparent 60%),
+        radial-gradient(70px 50px at 80% 20%, #f0f9ff, transparent 60%),
+        radial-gradient(120px 90px at 70% 90%, #f0fdf4, transparent 60%),
+        conic-gradient(from 180deg at 50% 50%, #f5f3ff, #fef3c7, #fee2e2, #e0f2fe, #f0fdf4, #f5f3ff);
+      position: relative;
+    }
+    .chip{ position:absolute; padding:8px 12px; background:#fff; border-radius: 999px; font-weight: 700; font-size: 13px; color:#475569; box-shadow: var(--shadow); border:1px solid rgba(148,163,184,.25) }
+    .chip.c1{ top:14px; left:12px } .chip.c2{ top:22px; right:18px } .chip.c3{ bottom:14px; left: 22px } .chip.c4{ bottom: 28px; right: 32px }
+
+    .hidden{ display:none !important }
+
+    /* 진행 바 */
+    .progress{ height: 12px; background: #fff; border-radius: 999px; border:1px solid rgba(148,163,184,.35); overflow: hidden; }
+    .progress > span{ height: 100%; display:block; width: 0%; background: linear-gradient(90deg, var(--primary), var(--accent-1)); transition: width .3s ease; }
+
+    /* 질문 카드 */
+    .qwrap{ padding: 24px; display:grid; gap: 12px; }
+    .qheader{ display:flex; align-items:center; justify-content: space-between; gap: 12px; }
+    .qtitle{ font-weight: 800; font-size: 18px; letter-spacing: -.2px; }
+    .qhint{ color: var(--muted); font-size: 13px; }
+
+    .scale{
+      display:grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 12px; padding: 14px; border-radius: 14px;
+      background: #fff; border:1px solid rgba(148,163,184,.35);
+    }
+    .side{ color:#0f172a; font-weight: 700; font-size: 14px; }
+
+    .choices{ display: flex; gap: 8px; align-items:center; }
+    .pill{
+      --size: 36px; width: var(--size); height: var(--size); border-radius: 999px;
+      display: grid; place-items: center; cursor: pointer; user-select: none;
+      background: #f8fafc; border:1px solid rgba(148,163,184,.5); font-weight: 800; color:#64748b;
+      transition: transform .05s ease, box-shadow .2s ease, border-color .2s ease, background .2s ease, color .2s ease;
+    }
+    .pill:hover{ box-shadow: 0 8px 16px rgba(15,23,42,.06); }
+    .pill[data-active="true"]{ background: linear-gradient(135deg, #f0f9ff, #f5f3ff); color:#0f172a; border-color: var(--primary); transform: translateY(-1px); }
+
+    .qnav{ display:flex; justify-content: space-between; margin-top: 10px; }
+
+    /* 결과 */
+    .result{ padding: 24px; display:grid; gap: 18px; }
+
+    .type-badge{ display:inline-flex; align-items:center; gap:10px; padding:10px 14px; border-radius: 14px; background:#fff; border:1px solid rgba(148,163,184,.35); box-shadow: var(--shadow); }
+    .type-code{ font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; font-weight: 900; font-size: 22px; letter-spacing: 2px; }
+
+    .grid{ display:grid; grid-template-columns: repeat(12, 1fr); gap: 16px; }
+    .col-6{ grid-column: span 6 }
+    .col-12{ grid-column: span 12 }
+    @media (max-width: 860px){ .hero{ grid-template-columns: 1fr; } .col-6{ grid-column: span 12 } }
+
+    .bar{ height: 12px; border-radius: 999px; background: #fff; border:1px solid rgba(148,163,184,.35); overflow: hidden; }
+    .bar > span{ display:block; height:100%; width: 50%; background: linear-gradient(90deg, var(--accent-2), var(--accent-1)); transition: width .3s ease; }
+
+    .kbd{ font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono"; font-size: 12px; background:#fff; border:1px solid rgba(148,163,184,.45); padding: 2px 6px; border-radius: 6px; }
+
+    footer{ margin-top: 24px; color: var(--muted); font-size: 12px; text-align:center; }
+    .disclaimer{ color: #64748b; font-size: 13px; line-height: 1.6; }
+
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="brand">
+        <div class="logo" aria-hidden="true"></div>
+        <div>
+          <h1>MBTI 진단 · 파스텔</h1>
+          <p>선호 경향을 네 가지 축으로 살펴보는 24문항 자가 진단</p>
+        </div>
+      </div>
+      <div>
+        <button id="btnPrint" class="btn ghost" title="결과 인쇄/저장(⌘/Ctrl+P)">인쇄 · PDF</button>
+      </div>
+    </header>
+
+    <!-- 인트로 -->
+    <section id="intro" class="card hero" role="region" aria-label="소개">
+      <div>
+        <h2 style="margin:0 0 8px 0">당신의 선호, 어떻게 작동할까요?</h2>
+        <p class="lede">에너지 방향(E/I), 정보 인식(S/N), 판단 기준(T/F), 생활 양식(J/P) 네 축을 바탕으로 선호 경향을 가볍게 확인합니다. 과학적 진단이 아닌 <strong>자가 탐색 도구</strong>이며, 채용·승진 등 고스테이크 판단에 단독 사용하면 안 됩니다.</p>
+        <div class="cta">
+          <button id="start" class="btn" aria-controls="quiz">테스트 시작하기</button>
+          <button id="seeHow" class="btn secondary" aria-controls="about">MBTI 원리 보기</button>
+        </div>
+        <div style="margin-top:10px; font-size:13px; color:var(--muted)">단축키: <span class="kbd">←</span>/<span class="kbd">→</span> 문항 이동 · <span class="kbd">1..5</span> 선택</div>
+      </div>
+      <div class="illus card">
+        <div class="chip c1">E ↔ I</div>
+        <div class="chip c2">S ↔ N</div>
+        <div class="chip c3">T ↔ F</div>
+        <div class="chip c4">J ↔ P</div>
+      </div>
+    </section>
+
+    <!-- 원리 요약 -->
+    <section id="about" class="card hidden" role="region" aria-label="MBTI 원리">
+      <div class="qwrap">
+        <div class="qtitle">MBTI 한 눈에 보기</div>
+        <p class="qhint">네 가지 축의 선호를 조합(예: ENFP)하며, 선호는 능력/인성과 다릅니다.</p>
+        <div class="grid">
+          <div class="card col-6" style="padding:16px">
+            <strong>에너지</strong> <span class="muted">E 외향 ↔ I 내향</span>
+            <ul>
+              <li>E: 상호작용에서 충전, 말하며 정리</li>
+              <li>I: 혼자·내적사고로 충전, 숙고 후 표현</li>
+            </ul>
+          </div>
+          <div class="card col-6" style="padding:16px">
+            <strong>정보</strong> <span class="muted">S 감각 ↔ N 직관</span>
+            <ul>
+              <li>S: 현재 사실·경험, 세부·실용</li>
+              <li>N: 패턴·가능성, 개념·연결</li>
+            </ul>
+          </div>
+          <div class="card col-6" style="padding:16px">
+            <strong>판단</strong> <span class="muted">T 사고 ↔ F 감정</span>
+            <ul>
+              <li>T: 원칙·논리·일관성</li>
+              <li>F: 가치·관계·맥락</li>
+            </ul>
+          </div>
+          <div class="card col-6" style="padding:16px">
+            <strong>생활</strong> <span class="muted">J 판단 ↔ P 인식</span>
+            <ul>
+              <li>J: 계획·마감·결정</li>
+              <li>P: 유연·탐색·옵션</li>
+            </ul>
+          </div>
+        </div>
+        <div style="display:flex; gap:10px; justify-content:flex-end">
+          <button class="btn ghost" data-nav="intro">돌아가기</button>
+          <button class="btn" data-nav="quiz">테스트 하러 가기</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- 퀴즈 -->
+    <section id="quiz" class="card hidden" role="region" aria-label="MBTI 설문">
+      <div class="qwrap">
+        <div class="qheader">
+          <div style="min-width:160px">
+            <div class="qtitle">문항 <span id="qIndex">1</span> / <span id="qTotal">24</span></div>
+            <div class="qhint" id="dimHint">E(외향) ↔ I(내향)</div>
+          </div>
+          <div class="progress" aria-label="진행률"><span id="prog" style="width:0%"></span></div>
+        </div>
+
+        <div class="card" style="padding:16px; border-radius:14px;">
+          <div id="qText" style="font-size:17px; line-height:1.7; font-weight:700; margin-bottom:10px">질문 텍스트</div>
+          <div class="scale" role="group" aria-label="선호 선택">
+            <div class="side" id="labelA">옵션 A</div>
+            <div class="choices" role="radiogroup" aria-label="정도">
+              <button class="pill" data-val="0" aria-label="A에 매우 가까움">1</button>
+              <button class="pill" data-val="1" aria-label="A에 가까움">2</button>
+              <button class="pill" data-val="2" aria-label="중간">3</button>
+              <button class="pill" data-val="3" aria-label="B에 가까움">4</button>
+              <button class="pill" data-val="4" aria-label="B에 매우 가까움">5</button>
+            </div>
+            <div class="side" id="labelB" style="text-align:right">옵션 B</div>
+          </div>
+        </div>
+
+        <div class="qnav">
+          <div style="display:flex; gap:8px">
+            <button id="prev" class="btn ghost">← 이전</button>
+            <button id="resetOne" class="btn ghost">선택 지우기</button>
+          </div>
+          <div style="display:flex; gap:8px">
+            <button id="saveExit" class="btn secondary" title="진행 저장">임시 저장</button>
+            <button id="next" class="btn">다음 →</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 결과 -->
+    <section id="result" class="card hidden" role="region" aria-label="결과">
+      <div class="result">
+        <div class="type-badge">
+          <div class="logo" style="width:34px;height:34px"></div>
+          <div>
+            <div style="font-size:12px; color:var(--muted); font-weight:700">당신의 선호 조합</div>
+            <div class="type-code" id="typeCode">—</div>
+          </div>
+        </div>
+
+        <div class="grid">
+          <div class="col-6 card" style="padding:16px">
+            <div style="font-weight:800; margin-bottom:6px">축별 선호 강도</div>
+            <div id="bars" class="grid col-12" style="grid-template-columns: 1fr; gap: 12px"></div>
+          </div>
+          <div class="col-6 card" style="padding:16px">
+            <div style="font-weight:800; margin-bottom:6px">핵심 해석</div>
+            <div id="typeNarrative" style="line-height:1.8"></div>
+          </div>
+          <div class="col-12 card" style="padding:16px">
+            <div style="font-weight:800; margin-bottom:6px">인지기능 스택</div>
+            <div id="fnStack" style="display:flex; gap:10px; flex-wrap:wrap"></div>
+            <div style="color:var(--muted); font-size:13px; margin-top:6px">* 인지기능은 선호 경향을 설명하는 모델로, 상황·발달 단계에 따라 표현이 달라질 수 있어요.</div>
+          </div>
+          <div class="col-6 card" style="padding:16px">
+            <div style="font-weight:800; margin-bottom:6px">활용 팁</div>
+            <ul id="tips" style="margin:0 0 0 18px; line-height:1.8"></ul>
+          </div>
+          <div class="col-6 card" style="padding:16px">
+            <div style="font-weight:800; margin-bottom:6px">공유 · 저장</div>
+            <div style="display:flex; gap:8px; flex-wrap:wrap">
+              <button id="copyLink" class="btn secondary">결과 링크 복사</button>
+              <button id="restart" class="btn ghost">다시 하기</button>
+            </div>
+            <div style="font-size:13px; color:var(--muted); margin-top:8px" id="shareUrl"></div>
+          </div>
+        </div>
+
+        <p class="disclaimer">본 도구는 자기이해를 돕기 위한 비공식 설문입니다. 결과를 고정된 성격 단정으로 사용하기보다, 
+          <strong>강점을 배치</strong>하고 <strong>약점은 환경·도구로 보완</strong>하는 출발점으로 사용해 주세요.</p>
+      </div>
+    </section>
+
+    <footer>
+      © <span id="year"></span> Pastel MBTI. Built as a single HTML file. · <a href="#" id="jumpAbout">원리 보기</a>
+    </footer>
+  </div>
+
+  <script>
+  const $ = (sel, root=document) => root.querySelector(sel);
+  const $$ = (sel, root=document) => [...root.querySelectorAll(sel)];
+
+  const sections = { intro: $('#intro'), about: $('#about'), quiz: $('#quiz'), result: $('#result') };
+  const qIndexEl = $('#qIndex');
+  const qTotalEl = $('#qTotal');
+  const qTextEl = $('#qText');
+  const labelA = $('#labelA');
+  const labelB = $('#labelB');
+  const prog = $('#prog');
+  const dimHint = $('#dimHint');
+
+  const STORAGE_KEY = 'pastel-mbti-v1';
+
+  const DIM_LETTERS = { EI: ['E','I'], SN: ['S','N'], TF: ['T','F'], JP: ['J','P'] };
+  const DIM_LABELS = {
+    EI: 'E(외향) ↔ I(내향)',
+    SN: 'S(감각) ↔ N(직관)',
+    TF: 'T(사고) ↔ F(감정)',
+    JP: 'J(판단) ↔ P(인식)'
+  };
+
+  // 24 문항 (각 6개) — A는 왼쪽(첫 글자), B는 오른쪽(둘째 글자)
+  const ITEMS = [
+    // EI 6
+    {dim:'EI', a:'긴 하루를 마치고 사람들과 대화하며 에너지가 회복된다', b:'혼자 조용히 보내며 에너지가 회복된다'},
+    {dim:'EI', a:'아이디어는 말로 풀어낼 때 더 정리된다', b:'생각을 글/메모로 정리한 뒤 말하는 편이다'},
+    {dim:'EI', a:'즉각 반응과 상호작용이 편하다', b:'반응 전 잠깐 숙고하는 시간이 필요하다'},
+    {dim:'EI', a:'새 모임에서 여러 사람과 폭넓게 교류한다', b:'몇몇과 깊게 이야기하는 편이다'},
+    {dim:'EI', a:'활동적 일정이 연속되어도 괜찮은 편', b:'일정 사이에 회복 시간(혼자만의 시간)이 꼭 필요'},
+    {dim:'EI', a:'생각은 밖으로 꺼내며 발전한다', b:'생각은 안에서 다듬은 뒤 꺼낸다'},
+
+    // SN 6
+    {dim:'SN', a:'지금 여기의 사실과 데이터가 우선이다', b:'패턴과 가능성, “그다음”이 먼저 보인다'},
+    {dim:'SN', a:'구체 예시와 절차가 있으면 안심된다', b:'큰 그림과 비유가 있으면 더 잘 이해된다'},
+    {dim:'SN', a:'실행 가능한 것부터 시작한다', b:'먼저 방향과 컨셉을 설계한다'},
+    {dim:'SN', a:'경험 검증된 것을 선호한다', b:'새로운 시도와 변화를 선호한다'},
+    {dim:'SN', a:'세부·품질 관리에 강점', b:'연결·아이디어 확장에 강점'},
+    {dim:'SN', a:'현재를 중심으로 판단', b:'미래 가능성을 중심으로 판단'},
+
+    // TF 6
+    {dim:'TF', a:'원칙·논리·일관성이 우선', b:'가치·관계·영향이 우선'},
+    {dim:'TF', a:'피드백은 구체한 사실과 근거 위주', b:'피드백은 배려·의도·맥락을 포함'},
+    {dim:'TF', a:'갈등 시 공정성을 먼저 점검', b:'갈등 시 상대 감정을 먼저 점검'},
+    {dim:'TF', a:'결정 시 장단점 표로 비교', b:'결정 시 누구에게 어떤 영향인지 본다'},
+    {dim:'TF', a:'직설적이고 간결한 표현 선호', b:'상황을 고려한 온도 조절 표현 선호'},
+    {dim:'TF', a:'규칙이 예외보다 중요', b:'예외가 규칙만큼 중요'},
+
+    // JP 6
+    {dim:'JP', a:'일정표를 먼저 확정하고 진행', b:'프레임만 잡고 현지에서 유연 조정'},
+    {dim:'JP', a:'마감·결론을 내며 안심', b:'옵션을 열어두며 안심'},
+    {dim:'JP', a:'완료·체크리스트가 동기부여', b:'탐색·실험이 동기부여'},
+    {dim:'JP', a:'정리·구조화가 습관', b:'수집·확장이 습관'},
+    {dim:'JP', a:'결정 후 번복을 꺼리는 편', b:'결정 후에도 바꿀 수 있어야 편안'},
+    {dim:'JP', a:'규칙과 우선순위를 세운다', b:'상황에 따라 융통성 있게 바꾼다'},
+  ];
+
+  // 상태
+  let state = {
+    i: 0, // 현재 문항 index
+    answers: Array(ITEMS.length).fill(null) // 각 문항 0..4
+  };
+
+  // 시작/네비게이션
+  $('#start').addEventListener('click', () => show('quiz'));
+  $('#seeHow').addEventListener('click', () => show('about'));
+  $('#jumpAbout').addEventListener('click', (e) => { e.preventDefault(); show('about');});
+  $$('#about [data-nav]').forEach(b => b.addEventListener('click', () => show(b.dataset.nav)));
+
+  // 인쇄 버튼
+  $('#btnPrint').addEventListener('click', () => window.print());
+
+  // 퀴즈 초기화
+  function initQuiz(){
+    qTotalEl.textContent = ITEMS.length;
+    renderQuestion();
+  }
+
+  function show(section){
+    Object.keys(sections).forEach(k => sections[k].classList.add('hidden'));
+    sections[section].classList.remove('hidden');
+    if(section === 'quiz') initQuiz();
+  }
+
+  function renderQuestion(){
+    const q = ITEMS[state.i];
+    qIndexEl.textContent = state.i + 1;
+    qTextEl.textContent = q.a + ' … vs … ' + q.b; // 간결 표시
+    labelA.textContent = q.a;
+    labelB.textContent = q.b;
+    dimHint.textContent = DIM_LABELS[q.dim];
+
+    // 진행률
+    prog.style.width = ((state.i) / ITEMS.length * 100).toFixed(1) + '%';
+
+    // 선택 표시
+    $$('.pill').forEach(p => {
+      const v = Number(p.dataset.val);
+      const cur = state.answers[state.i];
+      p.dataset.active = cur === v;
+    });
+
+    // 버튼 상태
+    $('#prev').disabled = state.i === 0;
+    $('#next').textContent = state.i === ITEMS.length - 1 ? '결과 보기' : '다음 →';
+  }
+
+  // 선택 처리
+  $$('.pill').forEach(p => p.addEventListener('click', () => {
+    const v = Number(p.dataset.val);
+    state.answers[state.i] = v;
+    persist();
+    renderQuestion();
+  }));
+
+  // 네비게이션
+  $('#next').addEventListener('click', () => {
+    if(state.answers[state.i] == null){
+      shake($('#quiz'));
+      return;
+    }
+    if(state.i < ITEMS.length - 1){
+      state.i++; renderQuestion();
+    } else {
+      finalize();
+    }
+  });
+  $('#prev').addEventListener('click', () => { if(state.i>0){ state.i--; renderQuestion(); }});
+  $('#resetOne').addEventListener('click', () => { state.answers[state.i] = null; persist(); renderQuestion(); });
+  $('#restart').addEventListener('click', () => { state = { i:0, answers: Array(ITEMS.length).fill(null)}; persist(); show('quiz'); });
+
+  // 저장 & 복원
+  $('#saveExit').addEventListener('click', () => { persist(true); });
+  function persist(notify){
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    if(notify) toast('진행 상황을 저장했어요');
+  }
+  function restore(){
+    try{
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if(!raw) return;
+      const s = JSON.parse(raw);
+      if(!Array.isArray(s.answers) || typeof s.i !== 'number') return;
+      if(s.answers.length === ITEMS.length){ state = s; }
+    }catch(e){}
+  }
+
+  // 결과 계산
+  function finalize(){
+    const dims = { EI:0, SN:0, TF:0, JP:0 };
+    for(let idx=0; idx<ITEMS.length; idx++){
+      const ans = state.answers[idx];
+      if(ans==null) { show('quiz'); return; }
+      const q = ITEMS[idx];
+      // 0..4 => -2..+2 (음수: A쪽=첫 글자, 양수: B쪽=둘째 글자)
+      const score = ans - 2;
+      // 누적 (각 축에 더함)
+      dims[q.dim] += score;
+    }
+    // 각 축의 최종 글자
+    const type = (
+      (dims.EI <= 0 ? 'E':'I') +
+      (dims.SN <= 0 ? 'S':'N') +
+      (dims.TF <= 0 ? 'T':'F') +
+      (dims.JP <= 0 ? 'J':'P')
+    );
+
+    renderResult(type, dims);
+    show('result');
+  }
+
+  // 결과 렌더
+  function renderResult(type, dims){
+    $('#typeCode').textContent = type;
+
+    // 바(50% 기준에서 왼/오 이동)
+    const bars = $('#bars');
+    bars.innerHTML = '';
+    const order = ['EI','SN','TF','JP'];
+    order.forEach(dim => {
+      const total = 6 * 2; // 각 축 6문항 × 2 = 최대 절대값 12
+      const v = dims[dim]; // -12..+12
+      const pctB = (v + total) / (total*2) * 100; // 0..100 (왼쪽=첫 글자 0%, 오른쪽=둘째 글자 100%)
+      const [A,B] = DIM_LETTERS[dim];
+
+      const row = document.createElement('div');
+      row.innerHTML = `
+        <div style="display:grid; grid-template-columns: 1fr 120px; gap: 10px; align-items:center">
+          <div>
+            <div style="display:flex; justify-content:space-between; font-size:12px; color:var(--muted); margin-bottom:6px"><span>${A}</span><span>${B}</span></div>
+            <div class="bar"><span style="width:${pctB.toFixed(1)}%"></span></div>
+          </div>
+          <div style="text-align:right; font-weight:800">${Math.round(Math.abs(v)/total*100)}% 경향</div>
+        </div>`;
+      bars.appendChild(row);
+    });
+
+    // 내러티브
+    $('#typeNarrative').innerHTML = buildNarrative(type);
+
+    // 인지기능
+    renderFnStack(type);
+
+    // 팁
+    renderTips(type);
+
+    // 공유 링크
+    const url = new URL(window.location.href);
+    url.hash = '#type=' + type;
+    $('#shareUrl').textContent = url.toString();
+  }
+
+  function buildNarrative(type){
+    const L = type.split('');
+    const map = {
+      E: '상호작용에서 에너지를 얻고, 말하며 생각을 정리하는 경향',
+      I: '혼자 있는 시간에서 에너지를 회복하고, 숙고 후 표현하는 경향',
+      S: '현재의 사실과 경험, 세부·실용을 중시',
+      N: '패턴과 가능성, 개념과 연결을 중시',
+      T: '원칙·논리·일관성을 우선으로 판단',
+      F: '가치·관계·맥락을 우선으로 판단',
+      J: '계획·마감·결정을 선호하는 생활 양식',
+      P: '유연·탐색·옵션을 선호하는 생활 양식'
+    };
+    return `
+      <ul style="margin:0 0 0 18px">
+        <li><strong>${L[0]}</strong>: ${map[L[0]]}</li>
+        <li><strong>${L[1]}</strong>: ${map[L[1]]}</li>
+        <li><strong>${L[2]}</strong>: ${map[L[2]]}</li>
+        <li><strong>${L[3]}</strong>: ${map[L[3]]}</li>
+      </ul>
+      <div style="margin-top:8px">조합적으로 보면 <strong>${type}</strong>는 위 네 특성이 한 팀처럼 작동합니다. 강점은 의도적으로 배치하고, 약점은 환경·도구로 보완해 보세요.</div>
+    `;
+  }
+
+  // 16유형 인지기능 스택(지배/보조/3차/열등)
+  const FN_STACKS = {
+    ENFP:['Ne','Fi','Te','Si'], ENTP:['Ne','Ti','Fe','Si'],
+    ESFP:['Se','Fi','Te','Ni'], ESTP:['Se','Ti','Fe','Ni'],
+    ENFJ:['Fe','Ni','Se','Ti'], ENTJ:['Te','Ni','Se','Fi'],
+    ESFJ:['Fe','Si','Ne','Ti'], ESTJ:['Te','Si','Ne','Fi'],
+    INFP:['Fi','Ne','Si','Te'], INTP:['Ti','Ne','Si','Fe'],
+    ISFP:['Fi','Se','Ni','Te'], ISTP:['Ti','Se','Ni','Fe'],
+    INFJ:['Ni','Fe','Ti','Se'], INTJ:['Ni','Te','Fi','Se'],
+    ISFJ:['Si','Fe','Ti','Ne'], ISTJ:['Si','Te','Fi','Ne']
+  };
+  function renderFnStack(type){
+    const box = $('#fnStack'); box.innerHTML = '';
+    const f = FN_STACKS[type] || [];
+    const names = {
+      Ne:'외향 직관(Ne)', Ni:'내향 직관(Ni)', Se:'외향 감각(Se)', Si:'내향 감각(Si)',
+      Te:'외향 사고(Te)', Ti:'내향 사고(Ti)', Fe:'외향 감정(Fe)', Fi:'내향 감정(Fi)'
+    };
+    const roles = ['지배(주)','보조','3차','열등'];
+    f.forEach((code, idx) => {
+      const tag = document.createElement('div');
+      tag.className = 'type-badge';
+      tag.style.background = '#fff';
+      tag.style.borderColor = 'rgba(148,163,184,.35)';
+      tag.innerHTML = `<span class="kbd">${roles[idx]}</span> <strong>${names[code] || code}</strong>`;
+      box.appendChild(tag);
+    });
+  }
+
+  function renderTips(type){
+    const L = type.split('');
+    const tips = [];
+    // 간단 규칙 기반 팁
+    if(L[1]==='N') tips.push('아이디어를 넓히는 회의 초반을 리드하고, 중반엔 S유형과 함께 현실성 체크를 설계하세요.');
+    else tips.push('세부·품질 강점을 살려 계획·검증 단계의 책임을 맡아 보세요.');
+    if(L[2]==='T') tips.push('피드백 시 영향과 맥락 한 줄을 덧붙이면 수용성이 높아져요.');
+    else tips.push('결정 메모에 간단한 근거표를 덧붙이면 설득력이 좋아집니다.');
+    if(L[3]==='J') tips.push('데드라인·우선순위 보드를 만들어 팀의 속도를 끌어올려 보세요.');
+    else tips.push('브레인스토밍에서 대안 카탈로그를 만들어 팀에 선택지를 제공해 보세요.');
+    if(L[0]==='E') tips.push('하루 일정 중 짧은 고립(5–10분) 타임을 넣으면 집중력이 오래갑니다.');
+    else tips.push('하루 중 짧은 교류(5–10분) 타임을 넣으면 에너지 밸런스가 좋아집니다.');
+
+    const ul = $('#tips'); ul.innerHTML = '';
+    tips.forEach(t => { const li = document.createElement('li'); li.textContent = t; ul.appendChild(li); });
+  }
+
+  // 공유 링크 복사 / 해시에서 타입 복원
+  $('#copyLink').addEventListener('click', async () => {
+    try{
+      await navigator.clipboard.writeText($('#shareUrl').textContent);
+      toast('링크를 복사했어요');
+    } catch(e){ toast('복사에 실패했어요'); }
+  });
+
+  // 키보드 접근성
+  document.addEventListener('keydown', (e) => {
+    const onQuiz = !sections.quiz.classList.contains('hidden');
+    if(!onQuiz) return;
+    if(e.key === 'ArrowRight'){ $('#next').click(); }
+    if(e.key === 'ArrowLeft'){ $('#prev').click(); }
+    if(/[1-5]/.test(e.key)){
+      const idx = Number(e.key) - 1; $$('.pill')[idx].click();
+    }
+  });
+
+  // 토스트
+  function toast(msg){
+    const el = document.createElement('div');
+    el.textContent = msg;
+    el.style.cssText = 'position:fixed; left:50%; transform:translateX(-50%); bottom:24px; background:#0f172a; color:#fff; padding:10px 14px; border-radius:10px; font-size:13px; z-index:9999; box-shadow:0 8px 24px rgba(15,23,42,.25)';
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 1500);
+  }
+  function shake(el){
+    el.style.animation = 'shake .25s linear';
+    el.addEventListener('animationend', () => el.style.animation = '', {once:true});
+  }
+  const style = document.createElement('style');
+  style.textContent = '@keyframes shake{0%{transform:translateX(0)}25%{transform:translateX(-6px)}50%{transform:translateX(6px)}75%{transform:translateX(-3px)}100%{transform:translateX(0)}}';
+  document.head.appendChild(style);
+
+  // 초기 부트
+  (function boot(){
+    $('#year').textContent = new Date().getFullYear();
+    restore();
+
+    // 해시로 타입 바로 보기 (#type=ENFP)
+    const hash = new URL(window.location.href).hash;
+    const m = hash && hash.match(/#type=([E|I][S|N][T|F][J|P])/);
+    if(m){ renderResult(m[1], {EI:0,SN:0,TF:0,JP:0}); show('result'); return; }
+
+    // 저장된 상태가 있고 완료가 아니면 퀴즈로
+    if(state.answers.some(v => v!=null)) show('quiz');
+    else show('intro');
+  })();
+
+  </script>
+</body>
+</html>
+
